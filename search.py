@@ -120,12 +120,44 @@ def iterativeDeepeningSearch(problem):
     Begin with a depth of 1 and increment depth by 1 at every step.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    x = 1;
+    while True:
+        visited = util.Queue() #hummmmmmm
+        solution = util.Queue() #hummmmm
+        border = util.Stack() #border??? frontierrr????
+        result = BPLRecursive(problem.getStartState(), problem, x, solution, visited, border)
+        x += 1
+        if result != 0:            
+            return solution.list
+
+def BPLRecursive(node, problem, limit, solution, visited, border):
+    # marcar o no visitado???
+    # testar se e objetivo
+    # se o limite for 0 retorna oque?
+    # senaooooooo
+        cut = False
+        actions = util.Queue()
+        for action in problem.getActions(node):
+            # aqui vai codigos
+        for action in actions.list:
+            # aqui vai codigos
+        if cut:
+            return 0
+        else:
+            return None
+
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
+
+def convertOriginMapToActionList(node, originMap):
+	actionsList = []
+	while node in originMap:
+		node, action = originMap[node]
+		actionsList.insert(0, action)	
+	return actionsList    
 
 # Abbreviations
 bfs = breadthFirstSearch
