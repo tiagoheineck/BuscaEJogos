@@ -160,9 +160,41 @@ def BPLRecursive(node, problem, limit, solution, visited, border):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    frontier = util.Stack()
+    visited = util.Queue()
+    path = util.Stack()
+    state = {
+        'state': problem.getStartState(),
+        'cost': 1
+    }
+    return expand(problem, state, heuristic, frontier, visited, path)
   
+
+def expand(problem, state, heuristic, frontier, visited, path):
+    if not problem.goalTest(state['state']):
+        try:
+            visited.push(state['state'])
+            for action in problem.getActions(state['state']):
+                next_state = problem.getResult(state['state'], action)
+                if next_state not in visited.list:
+                    next_state = {
+                        'state': next_state,
+                        'action': action,
+                        'cost': heuristic(next_state, problem) + problem.getCost(state['state'], action) + state['cost']
+                    }
+                    frontier.push(next_state)
+
+            frontier.list = sorted(frontier.list, key=lambda state: state['cost'])
+            state = frontier.list[0]
+            #print frontier.list
+            del frontier.list[0]
+            path.push(state['action'])
+            return expand(problem, state, heuristic, frontier, visited, path)
+        except Exception as ex:
+            print ex.message
+            #print path.list
+    else:
+        return path.list
 
 # Abbreviations
 bfs = breadthFirstSearch
