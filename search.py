@@ -34,6 +34,7 @@ Pacman agents (in searchAgents.py).
 import util
 import sys
 import copy
+import operator
 
 class SearchProblem:
     """
@@ -160,41 +161,65 @@ def BPLRecursive(node, problem, limit, solution, visited, border):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    frontier = util.Stack()
-    visited = util.Queue()
-    path = util.Stack()
-    state = {
-        'state': problem.getStartState(),
-        'cost': 1
-    }
-    return expand(problem, state, heuristic, frontier, visited, path)
-  
+    frontier = util.Stack() #open set
+    visited = util.Queue()  #closed set
+    state = problem.getStartState() #initial state
+    cameFrom = {state: {'action': None, 'cameFrom': None}}
+    frontier.push(state)
+    costs = [{ 'state': state, 'g': 0, 'f': heuristic(state, problem)}]
 
-def expand(problem, state, heuristic, frontier, visited, path):
-    if not problem.goalTest(state['state']):
-        try:
-            visited.push(state['state'])
-            for action in problem.getActions(state['state']):
-                next_state = problem.getResult(state['state'], action)
-                if next_state not in visited.list:
-                    next_state = {
-                        'state': next_state,
-                        'action': action,
-                        'cost': heuristic(next_state, problem) + problem.getCost(state['state'], action) + state['cost']
-                    }
+    def getCost(state):
+        for cost in costs:
+            if cost['state'] == state:
+                return cost
+        return None
+
+    def reconstruct(cameFrom, current):
+        current = cameFrom[current]
+        solution = [current['action']]
+        while current['cameFrom'] != None:
+            current = cameFrom[current['cameFrom']]
+            if current['action']:
+                solution.append(current['action'])
+        return solution[::-1]
+        
+    
+    while not frontier.isEmpty():
+        current = sorted([cost for cost in costs if cost['state'] in frontier.list], key=lambda cost: cost['f'])[0]['state']
+        if problem.goalTest(current):
+            return reconstruct(cameFrom, current)
+
+        for state in frontier.list:
+            if state == current:
+                frontier.list.remove(state)
+        visited.push(current)
+
+        for action in problem.getActions(current):
+            next_state = problem.getResult(current, action)
+
+            if next_state not in visited.list:
+
+                if next_state not in frontier.list:
                     frontier.push(next_state)
 
-            frontier.list = sorted(frontier.list, key=lambda state: state['cost'])
-            state = frontier.list[0]
-            #print frontier.list
-            del frontier.list[0]
-            path.push(state['action'])
-            return expand(problem, state, heuristic, frontier, visited, path)
-        except Exception as ex:
-            print ex.message
-            #print path.list
-    else:
-        return path.list
+                # distance from start to current state
+                current_cost = getCost(current)
+                new_cost = current_cost['g'] + problem.getCost(current, action)
+                next_state_cost = getCost(next_state)
+                cameFrom[next_state] = {'action': action, 'cameFrom': current}
+                if not next_state_cost:
+                    # new path
+                    next_state_cost = {
+                        'state': next_state,
+                        'g': new_cost,
+                        'f': new_cost + heuristic(next_state, problem)
+                    }
+                    costs.append(next_state_cost)
+
+                elif new_cost <= next_state_cost['g']:
+                    # Best path until now
+                    next_state_cost['g'] = new_cost
+                    next_state_cost['f'] = new_cost + heuristic(next_state, problem)
 
 # Abbreviations
 bfs = breadthFirstSearch
